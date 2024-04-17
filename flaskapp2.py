@@ -39,6 +39,15 @@ def generate_frames(path_x = '', path_y = ''):
         yield (b'--frame\r\n'
                     b'Content-Type: image/jpeg\r\n\r\n' + frame +b'\r\n')
 
+def generate_frames_web(path_x="rtsp://admin:telmat123.@10.8.100.220/",path_y="rtsp://admin:QXJMCF@10.8.101.22/"):
+    yolo_output = video_detection(path_x,path_y)
+    for detection_ in yolo_output:
+        ref,buffer=cv2.imencode('.jpg',detection_)
+
+        frame=buffer.tobytes()
+        yield (b'--frame\r\n'
+                    b'Content-Type: image/jpeg\r\n\r\n' + frame +b'\r\n')
+
 @app.route('/', methods=['GET','POST'])
 @app.route('/home', methods=['GET','POST'])
 def home():
@@ -47,6 +56,18 @@ def home():
 # Rendering the Webcam Rage
 #Now lets make a Webcam page for the application
 #Use 'app.route()' method, to render the Webcam page at "/webcam"
+
+@app.route("/webcam", methods=['GET','POST'])
+
+def webcam():
+    session.clear()
+    return render_template('ui.html')
+
+# To display the Output Video on Webcam page
+@app.route('/webapp')
+def webapp():
+    #return Response(generate_frames(path_x = session.get('video_path', None),conf_=round(float(session.get('conf_', None))/100,2)),mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(generate_frames_web(path_x=0, path_y=1), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/FrontPage', methods=['GET','POST'])
 def front():
